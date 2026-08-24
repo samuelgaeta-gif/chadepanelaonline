@@ -1,0 +1,22 @@
+export const SUGGESTED_GIFTS = [
+  { name: "Jogo de panelas", category: "Cozinha", imageUrl: "/produtos/Jogo de panelas.png" },
+  { name: "Frigideira antiaderente", category: "Cozinha", imageUrl: "/produtos/Frigideira antiaderente.png" },
+  { name: "Conjunto de talheres", category: "Mesa", imageUrl: "/produtos/Conjunto de talheres.png" },
+  { name: "Jogo de pratos", category: "Mesa", imageUrl: "/produtos/Jogo de pratos.png" },
+  { name: "Copos e taças", category: "Mesa", imageUrl: "/produtos/Copos e taças.png" },
+  { name: "Liquidificador", category: "Eletrodomésticos", imageUrl: "/produtos/Liquidificador.png" },
+  { name: "Batedeira", category: "Eletrodomésticos", imageUrl: "/produtos/Batedeira.png" },
+  { name: "Air fryer", category: "Eletrodomésticos", imageUrl: "/produtos/Air fryer.png" },
+  { name: "Cafeteira", category: "Eletrodomésticos", imageUrl: "/produtos/Cafeteira.png" },
+  { name: "Tábua de corte", category: "Cozinha", imageUrl: "/produtos/Tábua de corte.png" },
+  { name: "Kit utensílios de cozinha", category: "Cozinha", imageUrl: "/produtos/Kit utensílios de cozinha.png" },
+  { name: "Panela de pressão", category: "Cozinha", imageUrl: "/produtos/Panela de pressão.png" },
+  { name: "Forma de bolo", category: "Confeitaria", imageUrl: "/produtos/Forma de bolo.png" },
+  { name: "Escorredor de louça", category: "Pia", imageUrl: "/produtos/Escorredor de louça.png" },
+  { name: "Jogo de potes herméticos", category: "Armazenamento", imageUrl: "/produtos/Jogo de potes herméticos.png" },
+  { name: "Ralador", category: "Utensílios", imageUrl: "/produtos/Ralador.png" },
+  { name: "Espátulas", category: "Utensílios", imageUrl: "/produtos/Espátulas.png" },
+  { name: "Jogo de facas", category: "Utensílios", imageUrl: "/produtos/Jogo de facas.png" },
+  { name: "Pano de prato", category: "Têxtil", imageUrl: "/produtos/Pano de prato.png" },
+  { name: "Lixeira inox", category: "Limpeza", imageUrl: "/produtos/Lixeira inox.png" }
+];

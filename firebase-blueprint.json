@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile data for organizers",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "email", "createdAt", "updatedAt"]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "Chá de Panela event created by an organizer. The eventId acts as the shareCode.",
+      "type": "object",
+      "properties": {
+        "organizerId": { "type": "string" },
+        "brideName": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "location": { "type": "string" },
+        "theme": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["organizerId", "brideName", "date", "createdAt", "updatedAt"]
+    },
+    "Gift": {
+      "title": "Gift",
+      "description": "Gift in an event's registry",
+      "type": "object",
+      "properties": {
+        "eventId": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["available", "chosen"] },
+        "chosenByGuestEmail": { "type": "string" },
+        "chosenByGuestName": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["eventId", "name", "status", "createdAt", "updatedAt"]
+    },
+    "Guest": {
+      "title": "Guest",
+      "description": "Invited guest for an event",
+      "type": "object",
+      "properties": {
+        "eventId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["eventId", "name", "email", "createdAt", "updatedAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Message left by a guest",
+      "type": "object",
+      "properties": {
+        "eventId": { "type": "string" },
+        "guestName": { "type": "string" },
+        "guestEmail": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["eventId", "guestName", "message", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Registered organizers"
+    },
+    "events/{eventId}": {
+      "schema": { "$ref": "#/entities/Event" },
+      "description": "Events created by organizers"
+    },
+    "events/{eventId}/gifts/{giftId}": {
+      "schema": { "$ref": "#/entities/Gift" },
+      "description": "Gifts for events"
+    },
+    "events/{eventId}/guests/{guestId}": {
+      "schema": { "$ref": "#/entities/Guest" },
+      "description": "Guests invited to events. Allows guests to log in with their email."
+    },
+    "events/{eventId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "Messages from guests."
+    }
+  }
+}

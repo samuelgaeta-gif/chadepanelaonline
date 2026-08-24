@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  --color-rose-50: rgba(255, 255, 255, 0.4);
+  --color-rose-100: #F3E8DF;
+  --color-rose-200: rgba(246, 198, 211, 0.5);
+  --color-rose-400: #D8B26E;
+  --color-rose-500: #F6C6D3;
+  --color-rose-600: #E6B0BE;
+  --color-rose-700: #C28E9B;
+  --color-rose-800: #9E6C79;
+  --color-rose-900: #784E59;
+  --color-rose-950: #4A2B34;
+
+  --color-slate-50: transparent;
+  --color-stone-50: transparent;
+
+  --font-serif: "Georgia", serif;
+  --font-sans: "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #F3E8DF;
+  background-image: 
+      radial-gradient(at 0% 0%, rgba(246, 198, 211, 0.4) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(216, 178, 110, 0.15) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(255, 255, 255, 0.8) 0px, transparent 50%);
+  background-attachment: fixed;
+  background-size: cover;
+  color: #4A3C40;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+  border-radius: 24px;
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+button, a, [role="button"] {
+  cursor: pointer !important;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes pulse-whatsapp {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(37, 211, 102, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+.animate-whatsapp-pulse {
+  animation: pulse-whatsapp 2s infinite;
+}

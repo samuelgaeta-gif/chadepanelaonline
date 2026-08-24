@@ -1,0 +1,14 @@
+const fs = require('fs');
+let file = fs.readFileSync('src/pages/RegistryGuest.tsx', 'utf8');
+file = file.replace(/guestEmail/g, 'guestPhone');
+file = file.replace(/setGuestEmail/g, 'setGuestPhone');
+file = file.replace(/get\('email'\)/g, "get('phone')");
+file = file.replace(/emailParams/g, 'phoneParams');
+file = file.replace(/\?email=/g, '?phone=');
+file = file.replace(/Seu E-mail/g, 'Seu Telefone / WhatsApp');
+file = file.replace(/type="email"/g, 'type="tel" maxLength={15} minLength={14}');
+file = file.replace(/Ex: joao@email\.com/g, '(11) 99999-9999');
+file = file.replace(/guestPhone\.split\('@'\)\[0\]/g, '""');
+file = file.replace(/import \{ Gift, Event \} from/g, 'import { formatPhone } from "@/src/lib/utils";\nimport { Gift, Event } from');
+file = file.replace(/onChange=\{\(e\) => setGuestPhone\(e\.target\.value\)\}/g, 'onChange={(e) => setGuestPhone(formatPhone(e.target.value))}');
+fs.writeFileSync('src/pages/RegistryGuest.tsx', file);
