@@ -2,15 +2,9 @@
 
 ## 1. Suba o código para o GitHub
 
-No Terminal do seu Mac (dentro desta pasta do projeto):
+O repositório git já foi criado localmente (branch `main`, 1 commit com o projeto pronto para o Railway). Falta só criar o repositório remoto e enviar.
 
-```bash
-git init -b main
-git add .
-git commit -m "Preparar projeto para deploy no Railway"
-```
-
-Crie um repositório vazio em https://github.com/new (ex: `cha-de-panela-online`, pode ser privado) e depois:
+Crie um repositório vazio em https://github.com/new (ex: `cha-de-panela-online`, pode ser privado) e, no Terminal do seu Mac dentro desta pasta, rode:
 
 ```bash
 git remote add origin git@github.com:SEU_USUARIO/cha-de-panela-online.git
