@@ -143,11 +143,11 @@ apiRouter.post('/auth/register', async (req, res) => {
     // Send welcome email
     sendWelcomeEmail(email, { nomeCliente: name, linkDashboard: `${req.protocol}://${req.get('host')}/dashboard` });
     
-    res.json({ 
-      token, 
-      user: { 
-        id: result.insertId, 
-        name: name, 
+    res.json({
+      token,
+      user: {
+        id: result.insertId,
+        name: name,
         email,
         telefone: phone || '',
         logradouro: logradouro || '',
@@ -157,10 +157,11 @@ apiRouter.post('/auth/register', async (req, res) => {
         numero: numero || '',
         complemento: complemento || '',
         bairro: bairro || ''
-      } 
+      }
     });
   } catch (e: any) {
-    res.status(400).json({ error: e.message });
+    console.error('[REGISTER ERROR]', e);
+    res.status(400).json({ error: e?.sqlMessage || e?.message || String(e) || 'Erro desconhecido ao criar conta', code: e?.code });
   }
 });
 
