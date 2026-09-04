@@ -480,64 +480,103 @@ apiRouter.post('/events/:id/confirm-presence', async (req, res) => {
 });
 
 apiRouter.post('/events/:id/gifts/reserve', async (req, res) => {
+  const conn = await pool.getConnection();
   try {
-    const { giftId, giftIds, guestName, guestPhone, guestEmail, message, dbId } = req.body;
-    const finalGiftIds = giftIds || (giftId ? [giftId] : []);
-
+    const { giftIds, guestName, guestPhone, guestEmail, message, dbId } = req.body;
+    const finalGiftIds = giftIds || [];
+    await conn.beginTransaction();
     let cleanPhone = "";
     if (guestPhone) {
-        cleanPhone = guestPhone.replace(/\D/g, '');
+      cleanPhone = guestPhone.replace(/\D/g, '');
     }
-
     let convidadoId;
-    const [existing]: any = await pool.query('SELECT id FROM convidados WHERE festa_id = ? AND REPLACE(REPLACE(REPLACE(REPLACE(telefone, "(", ""), ")", ""), "-", ""), " ", "") = ?', [dbId, cleanPhone]);
-    
+    const [existing]: any = await conn.query(
+      'SELECT id FROM convidados WHERE festa_id = ? AND REPLACE(REPLACE(REPLACE(REPLACE(telefone, "(", ""), ")", ""), "-", ""), " ", "") = ? FOR UPDATE',
+      [dbId, cleanPhone]
+    );
     if (existing.length > 0) {
       convidadoId = existing[0].id;
-      await pool.query('UPDATE convidados SET presenca_confirmada = 1 WHERE id = ?', [convidadoId]);
+      await conn.query('UPDATE convidados SET presenca_confirmada = 1 WHERE id = ?', [convidadoId]);
     } else {
-      const [insertGuest]: any = await pool.query('INSERT INTO convidados (festa_id, nome, telefone, presenca_confirmada) VALUES (?, ?, ?, 1)', [dbId, guestName, guestPhone]);
+      const [insertGuest]: any = await conn.query(
+        'INSERT INTO convidados (festa_id, nome, telefone, presenca_confirmada) VALUES (?, ?, ?, 1)',
+        [dbId, guestName, guestPhone]
+      );
       convidadoId = insertGuest.insertId;
     }
-
     if (finalGiftIds.length > 0) {
-      for (const gid of finalGiftIds) {
-        await pool.query('UPDATE lista_presentes SET status = "reservado" WHERE id = ?', [gid]);
-        await pool.query('INSERT INTO reservas_presentes (lista_presente_id, convidado_id) VALUES (?, ?)', [gid, convidadoId]);
+      const [giftsByIdCheck]: any = await conn.query(
+        'SELECT id, status FROM lista_presentes WHERE id IN (?) AND festa_id = ? FOR UPDATE',
+        [finalGiftIds, dbId]
+      );
+      for (const giftId of finalGiftIds) {
+        const gift = giftsByIdCheck.find((g: any) => g.id === giftId);
+        if (!gift) {
+          throw new Error(`Presente ${giftId} não encontrado neste evento`);
+        }
+        if (gift.status !== 'disponivel') {
+          const [guestInfo]: any = await conn.query(
+            'SELECT nome FROM convidados WHERE id IN (SELECT convidado_id FROM reservas_presentes WHERE lista_presente_id = ?) LIMIT 1',
+            [giftId]
+          );
+          const reservedByName = guestInfo.length > 0 ? guestInfo[0].nome : 'outro convidado';
+          throw new Error(`Este presente já foi escolhido por ${reservedByName}`);
+        }
+      }
+      for (const giftId of finalGiftIds) {
+        const [updateResult]: any = await conn.query(
+          'UPDATE lista_presentes SET status = "reservado" WHERE id = ? AND status = "disponivel"',
+          [giftId]
+        );
+        if (updateResult.affectedRows === 0) {
+          throw new Error(`Falha ao reservar presente ${giftId}`);
+        }
+        await conn.query(
+          'INSERT INTO reservas_presentes (lista_presente_id, convidado_id) VALUES (?, ?)',
+          [giftId, convidadoId]
+        );
       }
     }
-
     if (message) {
-      await pool.query('INSERT INTO depoimentos (festa_id, convidado_id, mensagem) VALUES (?, ?, ?)', [dbId, convidadoId, message]);
+      await conn.query(
+        'INSERT INTO depoimentos (festa_id, convidado_id, mensagem) VALUES (?, ?, ?)',
+        [dbId, convidadoId, message]
+      );
     }
-
+    await conn.commit();
     if (finalGiftIds.length > 0) {
-      const [rows]: any = await pool.query(`
-        SELECT l.nome_custom, ps.nome as p_nome, u.email as orgEmail, u.telefone as orgPhone, u.nome as orgName, f.titulo as brideName 
-        FROM lista_presentes l 
-        LEFT JOIN produtos_sugeridos ps ON ps.id = l.produto_sugerido_id
-        JOIN festas f ON f.id = l.festa_id
-        JOIN usuarios u ON u.id = f.usuario_id
-        WHERE l.id IN (?)
-      `, [finalGiftIds]);
-      
+      const { sendGuestGiftChosenEmail, sendOrganizerGiftNotificationEmail } = await import('./emailService');
+      const { sendOrganizerGiftNotificationWhatsApp } = await import('./whatsappService');
+      const [rows]: any = await conn.query(
+        `SELECT l.nome_custom, ps.nome as p_nome, u.email as orgEmail, u.telefone as orgPhone, u.nome as orgName, f.titulo as brideName FROM lista_presentes l LEFT JOIN produtos_sugeridos ps ON ps.id = l.produto_sugerido_id JOIN festas f ON f.id = l.festa_id JOIN usuarios u ON u.id = f.usuario_id WHERE l.id IN (?)`,
+        [finalGiftIds]
+      );
       if (rows.length > 0) {
         const g = rows[0];
         const presentesDesejados = rows.map((r: any) => r.nome_custom || r.p_nome || 'Presente').join(', ');
         if (guestEmail) {
-          sendGuestGiftChosenEmail(guestEmail, { nomeConvidado: guestName, nomePresente: presentesDesejados, nomeDosNoivos: g.brideName });
+          sendGuestGiftChosenEmail(guestEmail, { nomeConvidado: guestName, nomePresente: presentesDesejados, nomeDosNoivos: g.brideName }).catch((err: any) => console.error('[EMAIL]', err.message));
         }
         const baseUrl = process.env.VITE_APP_URL || 'https://chadepanelaonline.com.br';
-        sendOrganizerGiftNotificationEmail(g.orgEmail, { nomeOrganizador: g.orgName, nomeConvidado: guestName, nomePresente: presentesDesejados, linkDashboard: `${baseUrl}/dashboard` });
+        sendOrganizerGiftNotificationEmail(g.orgEmail, { nomeOrganizador: g.orgName, nomeConvidado: guestName, nomePresente: presentesDesejados, linkDashboard: `${baseUrl}/dashboard` }).catch((err: any) => console.error('[EMAIL]', err.message));
         if (g.orgPhone) {
-          sendOrganizerGiftNotificationWhatsApp(g.orgPhone, guestName, presentesDesejados, g.orgName);
+          sendOrganizerGiftNotificationWhatsApp(g.orgPhone, guestName, presentesDesejados, g.orgName).catch((err: any) => console.error('[WHATSAPP]', err.message));
         }
       }
     }
-
     res.json({ success: true });
-  } catch (e: any) {
-    res.status(400).json({ error: e.message });
+  } catch (err: any) {
+    await conn.rollback();
+    console.error('[GIFT RESERVE ERROR]', err.message);
+    if (err.message.includes('já foi escolhido por')) {
+      return res.status(409).json({ error: err.message, code: 'GIFT_ALREADY_RESERVED' });
+    }
+    if (err.message.includes('não encontrado')) {
+      return res.status(404).json({ error: err.message, code: 'GIFT_NOT_FOUND' });
+    }
+    res.status(400).json({ error: err.message || 'Erro ao confirmar escolha do presente', code: 'UNKNOWN_ERROR' });
+  } finally {
+    await conn.release();
   }
 });
 
